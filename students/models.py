@@ -17,6 +17,7 @@ class Student(models.Model):
     birthday = models.DateField(default=datetime.date.today)
     city = models.CharField(max_length=50, null=True, blank=True)
     created = models.DateTimeField(auto_now=True)
+    updated = models.DateField(auto_now=True)
 
     class Meta:
         db_table = 'students'
