@@ -8,7 +8,7 @@ class Group(models.Model):
         db_column='group_name'
     )
 
-    group_start_date = models.DateField(default=datetime.datetime.now().strftime("%d-%m-%Y %H:%M"))
+    group_start_date = models.DateField(default='06/12/2022')
 
-    group_finish_date = models.DateField(default="22/04/2023")
+    group_finish_date = models.DateField(default='06/04/2023')
     

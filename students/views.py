@@ -1,13 +1,13 @@
-from urllib import response
-
-#import args
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
+from django.middleware.csrf import get_token
 from django.shortcuts import render
-from webargs.fields import Str
-from webargs.djangoparser import use_args
 
+from .forms import CreateStudentForm
 from .models import Student
 from .util import format_list_student
+from webargs.fields import Str
+from webargs.djangoparser import use_args
+from django.db.models import Q
 
 
 # HttpRequest
@@ -26,20 +26,56 @@ def index(request):
     return HttpResponse('Welcome to lms')
 
 
-'''@use_args(
+@use_args(
     {
         'first_name': Str(required=False),
         'last_name': Str(required=False),
     },
     location='query',
-)'''
-'''def get_students(request):
+)
+def get_students(request, args):
     students = Student.objects.all().order_by('birthday')
-    if 'first_name' in args:
-        students = students.filter(first_name=args['first_name'])
-    if 'last_name' in args:
-        students = students.filter(first_name=args['last_name'])
+    # if 'first_name' in args:
+    #    students = students.filter(first_name=args['first_name'])
+    # if 'last_name' in args:
+    #    students = students.filter(last_name=args['last_name'])
 
-    string = format_list_student(students)
+    if len(args) and (args.get('first_name') or args.get('last_name')):
+        students = students.filter(
+            Q(first_name=args.get('first_name', '')) | Q(last_name=args.get('last_name', ''))
+        )
+    html_form = '''
+            <form method="get">
+              <label for="fname">First name:</label>
+              <input type="text" id="fname" name="first_name"><br><br>
+              <label for="lname">Last name:</label>
+              <input type="text" id="lname" name="last_name"><br><br>
+              <input type="submit" value="Submit"><br>
+            </form>
+        '''
+    string = html_form + format_list_student(students)
     response = HttpResponse(string)
-    return response'''
+    return response
+
+
+def create_student_view(request):
+    if request.method == 'GET':
+        form = CreateStudentForm()
+    elif request.method == 'POST':
+        form = CreateStudentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/students/')
+
+    token = get_token(request)
+    html_form = f'''
+        <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{token}">
+            <table>
+                {form.as_table()}
+            </table>
+            <input type="submit" value="Submit"><br>
+        </form>
+    '''
+
+    return HttpResponse(html_form)
