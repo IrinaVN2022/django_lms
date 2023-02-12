@@ -1,14 +1,25 @@
 from django.db import models
-from datetime import datetime
+from faker import Faker
+from .validators import validate_start_date
+
 
 class Group(models.Model):
-    group_name = models.CharField(
-        max_length=50,
-        verbose_name='Group_name',
-        db_column='group_name'
+    title = models.CharField(
+        max_length=50
     )
+    start_date = models.DateField(validators=[validate_start_date])
+    description = models.TextField(null=True, blank=True)
 
-    group_start_date = models.DateField(default='06/12/2022')
+    class Meta:
+        __tablename__ = 'groups'
 
-    group_finish_date = models.DateField(default='06/04/2023')
+    @classmethod
+    def generate_data(cls, count: int):
+        faker = Faker()
+        for _ in range(count):
+            group = cls()
+            group.title = f'title group {_}'
+            group.start_date = faker.date_between(start_date='+0y', end_date='+5y')
+            group.description = faker.text()
+            group.save()
     
