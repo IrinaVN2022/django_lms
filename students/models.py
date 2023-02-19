@@ -1,5 +1,6 @@
 import datetime
 
+from dateutil.relativedelta import relativedelta
 from django.core.validators import MinLengthValidator
 from django.db import models
 from faker import Faker
@@ -28,6 +29,10 @@ class Student(models.Model):
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
 
+    def get_age(self):
+        return relativedelta(datetime.date.today(), self.birthday).years
+
+
     @classmethod
     def generate_fake_data(cls, cnt):
         f = Faker()
@@ -37,5 +42,5 @@ class Student(models.Model):
             s.last_name = f.last_name()
             s.email = f'{s.first_name}.{s.last_name}@{f.random.choice(VALID_DOMAINS)}'           # name.last@domain
             s.birthday = f.date_between(start_date='-65y', end_date='-18y')
-            #s.age = f.random_int(min=18, max=65)
+            # s.age = f.random_int(min=18, max=65)
             s.save()
